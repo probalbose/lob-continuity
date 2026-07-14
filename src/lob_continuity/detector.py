@@ -6,6 +6,8 @@ the resulting segments as valid or gap-bounded.
 """
 
 from dataclasses import dataclass
+from collections.abc import Iterable
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -20,7 +22,7 @@ class ContinuityReport:
     # TODO(owner): fields — segments: list[ContinuitySegment], gaps: list[...]
 
 
-def detect_continuity(events) -> ContinuityReport:
+def detect_continuity(events: Iterable[Any]) -> ContinuityReport:
     """Scan an ordered stream of depth events and partition it into
     continuity segments, marking gaps rather than interpolating across them.
 
