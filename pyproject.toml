@@ -1,0 +1,22 @@
+[project]
+name = "lob-continuity"
+version = "0.1.0"
+description = "A validity framework for detecting silent continuity gaps in limit order book reconstruction."
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Probal Bose"}]
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.5", "mypy>=1.10"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+
+[tool.mypy]
+strict = true
