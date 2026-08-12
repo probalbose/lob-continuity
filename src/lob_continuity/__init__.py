@@ -12,13 +12,16 @@ from lob_continuity.detector import (
     DepthUpdate,
     detect_continuity,
 )
+from lob_continuity.simulator import SyntheticDepthUpdate, simulate_depth_updates
 
 __all__ = [
     "ContinuityGap",
     "ContinuityReport",
     "ContinuitySegment",
     "DepthUpdate",
+    "SyntheticDepthUpdate",
     "detect_continuity",
+    "simulate_depth_updates",
 ]
 
 __version__ = "0.1.0"

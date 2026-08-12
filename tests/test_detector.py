@@ -27,8 +27,8 @@ def make_stream(*spans: tuple[int, int]) -> list[Event]:
 
 def test_empty_stream_has_no_segments_or_gaps() -> None:
     report = detect_continuity([])
-    assert report.segments == []
-    assert report.gaps == []
+    assert report.segments == ()
+    assert report.gaps == ()
     assert report.total_events == 0
     assert report.total_missing_updates == 0
     assert not report.is_continuous
@@ -41,7 +41,7 @@ def test_single_event_is_one_continuous_segment() -> None:
     seg = report.segments[0]
     assert (seg.start_update_id, seg.end_update_id) == (100, 105)
     assert (seg.start_index, seg.end_index, seg.event_count) == (0, 0, 1)
-    assert report.gaps == []
+    assert report.gaps == ()
 
 
 def test_clean_contiguous_stream_is_one_segment() -> None:
@@ -123,3 +123,15 @@ def test_accepts_a_lazy_iterator() -> None:
     report = detect_continuity(iter(make_stream((1, 2), (3, 4))))
     assert report.is_continuous
     assert report.total_events == 2
+
+
+def test_report_collections_are_immutable() -> None:
+    report = detect_continuity(make_stream((1, 2), (5, 6)))
+    assert isinstance(report.segments, tuple)
+    assert isinstance(report.gaps, tuple)
+
+
+def test_missing_update_count_is_based_on_ids_not_event_count() -> None:
+    report = detect_continuity(make_stream((100, 109), (115, 124)))
+    assert report.total_events == 2
+    assert report.total_missing_updates == 5

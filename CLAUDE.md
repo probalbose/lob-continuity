@@ -31,8 +31,8 @@ if present.
 
 ## How we work here (pair programming, not autopilot)
 
-This repo is developed as a **pair**: Probal (the owner) and Claude Code writing
-code together. The point is not just to ship the library — it is for Probal to
+This repo is developed as a **pair**: Probal (the owner) and a coding assistant
+writing code together. The point is not just to ship the library — it is for Probal to
 learn Python (and good library-design habits) while building it. Work in that
 spirit:
 
@@ -69,18 +69,11 @@ interpolating across them. See `docs/why_validity_matters.md` for the motivating
 
 ## Project state
 
-Early-stage scaffold. The public API is stubbed and not yet implemented:
-
-- `src/lob_continuity/detector.py` — `detect_continuity()`, `ContinuitySegment`,
-  `ContinuityReport`. Dataclass fields and the detection logic are `TODO(owner)`;
-  `detect_continuity` currently raises `NotImplementedError`.
-- `src/lob_continuity/simulator.py`, `src/lob_continuity/__init__.py` — empty.
-- `tests/test_detector.py`, `examples/demo.py` — empty (README references `demo.py` as the
-  quickstart, so it is expected to be fleshed out).
-
-When implementing, the intended data flow is: ordered depth-update stream →
-`detect_continuity` → a `ContinuityReport` holding a list of `ContinuitySegment`s plus the
-gap intervals between them.
+Version 0.1 has an implemented, typed continuity detector and immutable result
+objects. It also has a deterministic synthetic simulator, an executable demo,
+and unit tests. The intended data flow is: ordered depth-update stream →
+`detect_continuity` → a `ContinuityReport` holding continuous segments plus the
+explicit gap intervals between them.
 
 ## Commands
 

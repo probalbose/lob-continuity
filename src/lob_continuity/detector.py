@@ -80,8 +80,8 @@ class ContinuityReport:
     segments for an empty stream).
     """
 
-    segments: list[ContinuitySegment]
-    gaps: list[ContinuityGap]
+    segments: tuple[ContinuitySegment, ...]
+    gaps: tuple[ContinuityGap, ...]
 
     @property
     def is_continuous(self) -> bool:
@@ -198,4 +198,4 @@ def detect_continuity(events: Iterable[DepthUpdate]) -> ContinuityReport:
             )
         )
 
-    return ContinuityReport(segments=segments, gaps=gaps)
+    return ContinuityReport(segments=tuple(segments), gaps=tuple(gaps))
