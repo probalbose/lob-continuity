@@ -10,7 +10,9 @@ messages. A naively reconstructed order book keeps looking valid after a
 drop — it just becomes wrong. `lob-continuity` detects breaks in
 sequence-ID continuity and marks the resulting segments, rather than
 interpolating across them. See [docs/why_validity_matters.md](docs/why_validity_matters.md)
-for the full argument.
+for the full argument. The companion note
+[Resampling requires valid continuity segments](docs/resampling_requires_valid_segments.md)
+explains why a slower clock must never cross one of those boundaries.
 
 ## Architecture
 
