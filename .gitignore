@@ -9,3 +9,5 @@ __pycache__/
 # Local, uncommitted disclosure-boundary enforcement (never publish).
 # Contains the RED denylist and private symbol list — must stay out of the tree.
 .boundary/
+# Local assistant guidance for Codex (not published).
+AGENTS.md
