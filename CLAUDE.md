@@ -1,98 +1,90 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code (claude.ai/code) when it works in this repository.
 
-## Public disclosure boundary (read first)
+## Context
 
-This repository is **public**. It exists to demonstrate one thing: **data
-trustworthiness** for reconstructed limit order books — is a given interval
-clean, how do we know, and what happens when it is not.
+`lob-continuity` is the open-source data-validity layer of my PhD research on
+limit-order-book microstructure at University College Dublin. The research
+pipeline reconstructs order books from exchange depth-update streams. Every
+downstream result depends on knowing which intervals of that reconstruction
+can be trusted, and that question is what this library answers.
 
-Scope is deliberately narrow. In-scope work is limited to:
+I write and own this code. Claude Code is my coding assistant: it drafts and
+reviews code, writes tests and challenges design decisions. I review every
+change before it is committed.
 
-- **sequence-gap detection** (`detector.py`), and
-- a **synthetic depth-update simulator** (`simulator.py`) used to exercise it.
+## Scope (read first)
 
-Do **not** add, and do not let a request pull in:
+This repository is public. It covers **data trustworthiness** for
+reconstructed limit order books: is a given interval clean, how do we know,
+and what happens when it is not.
+
+In scope:
+
+- sequence-gap detection (`detector.py`)
+- the synthetic depth-update simulator (`simulator.py`) that exercises it
+
+Out of scope, and kept in the private research codebase:
 
 - modelling, forecasting, feature engineering, or any interpretation of what
-  clean data *implies* — this repo stops at "the interval is marked valid or
-  gap-bounded"; it never reasons about what the data means;
-- real captured market data, exchange-specific calibrations, symbol lists, or
-  parameter values — the simulator ships synthetic fixtures only;
-- infrastructure, host, provider, or credential details — if infra is
-  mentioned at all, keep it generic (e.g. "a small dedicated Linux box").
+  clean data implies. This library stops at "the interval is valid or
+  gap-bounded".
+- captured market data, venue-specific calibration, symbol lists or parameter
+  values. The simulator ships synthetic fixtures only.
+- infrastructure, host, provider or credential details.
 
-Widening this scope (new modules, real-data artefacts) is an owner decision made
-outside this repo — not something to infer from a coding request. If a task
-seems to cross this line, stop and ask. A local, uncommitted checklist and a
-pre-commit sweep enforce the finer-grained rules; see `.boundary/boundary-local.md`
-if present.
+Widening this scope is my decision. If a task looks like it crosses this
+line, stop and ask.
 
-## How we work here (pair programming, not autopilot)
+## How to work here
 
-This repo is developed as a **pair**: Probal (the owner) and a coding assistant
-writing code together. The point is not just to ship the library — it is for Probal to
-learn Python (and good library-design habits) while building it. Work in that
-spirit:
-
-- **Teach while doing.** When you write code, explain the *why* — idioms,
-  typing choices, standard-library options, trade-offs, and any Python-specific
-  gotchas. Prefer a short explanation over a silent large diff. Treat every
-  change as a chance to explain the language.
-- **Leave room for the owner to write code too.** Don't implement an entire
-  feature end-to-end by default. Offer to split the work — e.g. you scaffold and
-  do one part, Probal writes the next — and when useful, outline the approach
-  and let Probal attempt it first, then review and refine together.
-- **Default to plan-then-do.** For anything non-trivial, propose the approach
-  and discuss it before writing code, so it's a conversation, not a handoff.
-- **Review Probal's code constructively.** Point out bugs, typing issues, and
-  cleaner alternatives, and explain the reasoning so the lesson sticks.
+- **Plan before code.** For anything non-trivial, propose the approach and the
+  trade-offs before writing it.
+- **Explain non-obvious choices.** Typing decisions, standard-library options,
+  failure modes and edge cases belong in the review discussion, and in
+  docstrings where a future reader needs them.
+- **Small, reviewable diffs.** Prefer a focused change with tests over a large
+  rewrite.
+- **Fail closed.** Malformed, overlapping or out-of-order input raises
+  `ValueError`. Never guess, repair or interpolate silently.
 
 ## Git is owner-only
 
-**Probal is the only one who runs `git commit` and `git push`. Claude Code must
-never commit, push, or otherwise write to git history — not even when asked in
-passing.** Claude may stage nothing on its own; it edits working files, runs
-tests/lint/type-checks, and stops there. Prepare changes and *suggest* a commit
-message if helpful, but the owner reviews the diff and makes every commit. This
-keeps the disclosure boundary (above) under a human check on every commit.
+Only I run `git commit` and `git push`. Claude Code edits working files, runs
+lint, type checks and tests, and stops there. It may suggest a commit message.
+This keeps a human review on every change to a public repository.
 
-## What this is
+## Design
 
-A validity framework for detecting silent continuity gaps in limit order book (LOB)
-reconstruction. Depth-update streams (e.g. exchange WebSocket feeds) can silently drop
-messages; a naively reconstructed book stays *structurally* valid after a drop but becomes
-*wrong*. This library detects breaks in **sequence-ID (update-ID) continuity** — not
-wall-clock continuity — and partitions the stream into segments, marking gaps rather than
-interpolating across them. See `docs/why_validity_matters.md` for the motivating argument.
+Depth-update streams can silently drop messages. A naively reconstructed book
+stays structurally valid after a drop but becomes wrong. The library detects
+breaks in **update-ID continuity**, not wall-clock continuity, and partitions
+the stream into segments, marking gaps rather than interpolating across them.
+See `docs/why_validity_matters.md` and
+`docs/resampling_requires_valid_segments.md`.
 
-## Project state
-
-Version 0.1 has an implemented, typed continuity detector and immutable result
-objects. It also has a deterministic synthetic simulator, an executable demo,
-and unit tests. The intended data flow is: ordered depth-update stream →
-`detect_continuity` → a `ContinuityReport` holding continuous segments plus the
-explicit gap intervals between them.
+Data flow: ordered depth-update stream → `detect_continuity` →
+`ContinuityReport` (continuous segments plus the explicit gaps between them).
 
 ## Commands
 
 ```bash
-pip install -e ".[dev]"   # install package + dev tools (pytest, ruff, mypy)
+pip install -e ".[dev]"   # package + dev tools (pytest, ruff, mypy)
 
 ruff check .              # lint
-mypy src/                 # type-check (strict mode)
-pytest                   # run tests
-pytest tests/test_detector.py::test_name   # run a single test
+mypy src/                 # type-check (strict)
+pytest                    # tests
+pytest tests/test_detector.py::test_name   # a single test
 ```
 
-CI (`.github/workflows/ci.yml`) runs `ruff check .`, `mypy src/`, then `pytest` on Python
-3.11. Match all three locally before pushing.
+CI (`.github/workflows/ci.yml`) runs `ruff check .`, `mypy src/` and `pytest`
+on Python 3.11. All three must pass locally before a push.
 
 ## Conventions
 
-- `mypy` runs in **strict** mode — all new code must be fully typed.
-- Requires Python >=3.11; line length 100 (ruff).
-- Domain rule to preserve: continuity is defined by update-ID sequence, *not* timestamps.
-  Do not treat wall-clock gaps as continuity breaks, and never interpolate across a
-  detected sequence gap — mark it.
+- `mypy` runs in strict mode; all code is fully typed.
+- Python >= 3.11; line length 100 (ruff).
+- Domain rule: continuity is defined by the update-ID sequence, never by
+  timestamps. A wall-clock pause is not a break; a sequence jump is. Never
+  interpolate across a detected gap. Mark it.
